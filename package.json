@@ -5,7 +5,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "rm -rf public && webpack && cp src/index.html public/index.html",
+    "build": "rm -rf public && webpack && cp src/index.html public/index.html && cp -R images/ public/images/",
     "watch": "watch 'npm run build' ./src",
     "serve": "http-server ./public -p 8080 -c-1",
     "dev": "run-p watch serve"

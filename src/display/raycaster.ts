@@ -125,7 +125,7 @@ export const draw = (textureProvider: TextureProvider, canvas: HTMLCanvasElement
       texPos += step;
       let color = textureProvider.getColor(texNum, texX, texY);
       //make color darker for y-sides: R, G and B byte each divided through two with a "shift" and an "and"
-      if (side == 1) color = (color >> 1) & 8355711;
+      if (side == 1) color = (color >> 1) & 0x7F7F7F;
 
       setImageDataPixel(imageData, x, y, color);
     }
