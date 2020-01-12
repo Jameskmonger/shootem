@@ -1,5 +1,6 @@
 import { draw as drawRaycaster } from "./display/raycaster";
 import { PositionInfo } from "./world/positionInfo";
+import { TextureProvider } from "./display/textureProvider";
 
 let canvas: HTMLCanvasElement;
 let ctx: CanvasRenderingContext2D;
@@ -22,7 +23,7 @@ const setup = () => {
   ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
 
   setInterval(() => {
-    const rotSpeed = 0.05
+    const rotSpeed = 0.03
     const oldDirX = positionInfo.dirX;
     positionInfo.dirX = positionInfo.dirX * Math.cos(rotSpeed) - positionInfo.dirY * Math.sin(rotSpeed);
     positionInfo.dirY = oldDirX * Math.sin(rotSpeed) + positionInfo.dirY * Math.cos(rotSpeed);
@@ -34,10 +35,12 @@ const setup = () => {
   requestAnimationFrame(draw);
 };
 
+const textureProvider = new TextureProvider();
+
 const draw = (now: number) => {
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
-  drawRaycaster(canvas, ctx, positionInfo);
+  drawRaycaster(textureProvider, canvas, ctx, positionInfo);
 
   requestAnimationFrame(draw);
 };

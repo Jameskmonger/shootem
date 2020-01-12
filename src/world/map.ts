@@ -1,12 +1,10 @@
-import { WallType } from './wallType';
-
 export const map = [
-  [ WallType.BLUE, WallType.BLUE, WallType.BLUE, WallType.BLUE, WallType.BLUE, WallType.BLUE, WallType.BLUE, WallType.BLUE ],
-  [ WallType.BLUE, WallType.NONE, WallType.NONE, WallType.NONE, WallType.NONE, WallType.NONE, WallType.NONE, WallType.BLUE ],
-  [ WallType.BLUE, WallType.NONE, WallType.NONE, WallType.NONE, WallType.NONE, WallType.NONE, WallType.NONE, WallType.BLUE ],
-  [ WallType.BLUE, WallType.RED, WallType.NONE, WallType.NONE, WallType.NONE, WallType.NONE, WallType.NONE, WallType.BLUE ],
-  [ WallType.BLUE, WallType.RED, WallType.NONE, WallType.NONE, WallType.NONE, WallType.NONE, WallType.NONE, WallType.BLUE ],
-  [ WallType.BLUE, WallType.NONE, WallType.NONE, WallType.NONE, WallType.NONE, WallType.NONE, WallType.NONE, WallType.BLUE ],
-  [ WallType.BLUE, WallType.NONE, WallType.NONE, WallType.NONE, WallType.NONE, WallType.NONE, WallType.NONE, WallType.BLUE ],
-  [ WallType.BLUE, WallType.BLUE, WallType.BLUE, WallType.BLUE, WallType.BLUE, WallType.BLUE, WallType.BLUE, WallType.BLUE ],
+  [ 1, 1, 1, 4, 5, 1, 1, 1 ],
+  [ 1, 0, 0, 0, 0, 0, 0, 1 ],
+  [ 1, 0, 0, 0, 0, 0, 0, 1 ],
+  [ 1, 2, 0, 0, 0, 0, 0, 1 ],
+  [ 1, 2, 0, 0, 0, 0, 0, 1 ],
+  [ 1, 0, 0, 0, 0, 0, 0, 1 ],
+  [ 1, 0, 0, 0, 0, 0, 0, 1 ],
+  [ 1, 1, 1, 1, 1, 1, 1, 1 ],
 ];

@@ -1,20 +1,27 @@
-import { Color } from "./color";
 import { map } from "../world/map";
 import { PositionInfo } from "../world/positionInfo";
-import { WallType } from "../world/wallType";
+import { TextureProvider, TEXTURE_HEIGHT, TEXTURE_WIDTH } from "./textureProvider";
 
-(window as any).dirX = -1;
-(window as any).dirY = 0;
-(window as any).planeX = 0;
-(window as any).planeY = 0.66;
+const setImageDataPixel = (imageData: ImageData, x: number, y: number, color: number) => {
+  const red = (color >> 16) & 0xFF;
+  const green = (color >> 8) & 0xFF;
+  const blue = color & 0xFF;
+  const alpha = 0xFF;
 
-const COLOR_WALL_BLUE = new Color(0x00, 0x00, 0xFF)
-const COLOR_WALL_RED = new Color(0xFF, 0x00, 0x00)
+  const redIndex = y * (imageData.width * 4) + x * 4;
 
-export const draw = (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, position: PositionInfo) => {
+  imageData.data[redIndex] = red;
+  imageData.data[redIndex + 1] = green;
+  imageData.data[redIndex + 2] = blue;
+  imageData.data[redIndex + 3] = alpha;
+};
+
+export const draw = (textureProvider: TextureProvider, canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, position: PositionInfo) => {
   const { width, height } = ctx.canvas;
 
   const { posX, posY, dirX, dirY, planeX, planeY } = position;
+
+  const imageData = ctx.createImageData(width, height);
 
   for (let x = 0; x < width; x++) {
     //calculate ray position and direction
@@ -90,28 +97,39 @@ export const draw = (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, p
     let drawEnd = lineHeight / 2 + height / 2;
     if (drawEnd >= height) drawEnd = height - 1;
 
-    let color: Color | null = null;
-    switch (map[mapX][mapY]) {
-      case WallType.BLUE:
-        color = COLOR_WALL_BLUE;
-        break;
-      case WallType.RED:
-        color = COLOR_WALL_RED;
-        break;
+    const texNum = map[mapX][mapY] - 1; //1 subtracted from it so that texture 0 can be used!
+
+    if (texNum === -1) {
+      continue;
     }
 
-    if (color) {
-      if (side == 1) {
-        color = color.darken(2);
-      }
+    //calculate value of wallX
+    let wallX; //where exactly the wall was hit
+    if (side == 0) wallX = posY + perpWallDist * rayDirY;
+    else wallX = posX + perpWallDist * rayDirX;
+    wallX -= Math.floor(wallX);
 
-      ctx.strokeStyle = color.toStrokeString();
-      ctx.save();
+    //x coordinate on the texture
+    let texX = Math.round(wallX * TEXTURE_WIDTH);
+    if (side == 0 && rayDirX > 0) texX = TEXTURE_WIDTH - texX - 1;
+    if (side == 1 && rayDirY < 0) texX = TEXTURE_WIDTH - texX - 1;
 
-      ctx.beginPath();
-      ctx.moveTo(x, drawStart);
-      ctx.lineTo(x, drawEnd);
-      ctx.stroke();
+    // How much to increase the texture coordinate per screen pixel
+    const step = 1.0 * TEXTURE_HEIGHT / lineHeight;
+    // Starting texture coordinate
+    let texPos = (drawStart - height / 2 + lineHeight / 2) * step;
+    for (let y = Math.round(drawStart); y < Math.round(drawEnd); y++)
+    {
+      // Cast the texture coordinate to integer, and mask with (texHeight - 1) in case of overflow
+      const texY = Math.round(texPos) & (TEXTURE_HEIGHT - 1);
+      texPos += step;
+      let color = textureProvider.getColor(texNum, texX, texY);
+      //make color darker for y-sides: R, G and B byte each divided through two with a "shift" and an "and"
+      if (side == 1) color = (color >> 1) & 8355711;
+
+      setImageDataPixel(imageData, x, y, color);
     }
   }
-};
+
+  ctx.putImageData(imageData, 0, 0);
+}
