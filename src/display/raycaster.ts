@@ -16,12 +16,78 @@ const setImageDataPixel = (imageData: ImageData, x: number, y: number, color: nu
   imageData.data[redIndex + 3] = alpha;
 };
 
+const drawFloors = (textureProvider: TextureProvider, ctx: CanvasRenderingContext2D, imageData: ImageData, position: PositionInfo) => {
+  const { width, height } = ctx.canvas;
+
+  const { posX, posY, dirX, dirY, planeX, planeY } = position;
+
+    //FLOOR CASTING
+    for(let y = 0; y < height; y++)
+    {
+      // rayDir for leftmost ray (x = 0) and rightmost ray (x = w)
+      const rayDirX0 = dirX - planeX;
+      const rayDirY0 = dirY - planeY;
+      const rayDirX1 = dirX + planeX;
+      const rayDirY1 = dirY + planeY;
+
+      // Current y position compared to the center of the screen (the horizon)
+      const p = y - height / 2;
+
+      // Vertical position of the camera.
+      const posZ = 0.5 * height;
+
+      // Horizontal distance from the camera to the floor for the current row.
+      // 0.5 is the z position exactly in the middle between floor and ceiling.
+      const rowDistance = posZ / p;
+
+      // calculate the real world step vector we have to add for each x (parallel to camera plane)
+      // adding step by step avoids multiplications with a weight in the inner loop
+      const floorStepX = rowDistance * (rayDirX1 - rayDirX0) / width;
+      const floorStepY = rowDistance * (rayDirY1 - rayDirY0) / width;
+
+      // real world coordinates of the leftmost column. This will be updated as we step to the right.
+      let floorX = posX + rowDistance * rayDirX0;
+      let floorY = posY + rowDistance * rayDirY0;
+
+      for(let x = 0; x < width; ++x)
+      {
+        // the cell coord is simply got from the integer parts of floorX and floorY
+        const cellX = Math.round(floorX);
+        const cellY = Math.round(floorY);
+
+        // get the texture coordinate from the fractional part
+        const tx = Math.round(TEXTURE_WIDTH * (floorX - cellX)) & (TEXTURE_WIDTH - 1);
+        const ty = Math.round(TEXTURE_HEIGHT * (floorY - cellY)) & (TEXTURE_HEIGHT - 1);
+
+        floorX += floorStepX;
+        floorY += floorStepY;
+
+        // choose texture and draw the pixel
+        const floorTexture = 4;
+        const ceilingTexture = 4;
+        let color: number;
+
+        // floor
+        color = textureProvider.getColor(floorTexture, tx, ty);
+        color = (color >> 1) & 0x7F7F7F; // make a bit darker
+        setImageDataPixel(imageData, x, y, color);
+
+        //ceiling (symmetrical, at screenHeight - y - 1 instead of y)
+        color = textureProvider.getColor(ceilingTexture, tx, ty);
+        color = (color >> 1) & 0x7F7F7F; // make a bit darker
+        setImageDataPixel(imageData, x, height - y - 1, color);
+      }
+    }
+};
+
 export const draw = (textureProvider: TextureProvider, canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, position: PositionInfo) => {
   const { width, height } = ctx.canvas;
 
   const { posX, posY, dirX, dirY, planeX, planeY } = position;
 
   const imageData = ctx.createImageData(width, height);
+
+  drawFloors(textureProvider, ctx, imageData, position);
 
   for (let x = 0; x < width; x++) {
     //calculate ray position and direction

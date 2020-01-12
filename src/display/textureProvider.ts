@@ -26,6 +26,7 @@ export class TextureProvider {
     this.loadImage(1, "images/mossy.png");
     this.loadImage(2, "images/eagle.png");
     this.loadImage(3, "images/redbrick.png");
+    this.loadImage(4, "images/wood.png");
   }
 
   public getColor(textureId: number, texX: number, texY: number) {

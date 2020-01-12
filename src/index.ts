@@ -23,7 +23,7 @@ const setup = () => {
   ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
 
   setInterval(() => {
-    const rotSpeed = 0.03
+    const rotSpeed = 0.01
     const oldDirX = positionInfo.dirX;
     positionInfo.dirX = positionInfo.dirX * Math.cos(rotSpeed) - positionInfo.dirY * Math.sin(rotSpeed);
     positionInfo.dirY = oldDirX * Math.sin(rotSpeed) + positionInfo.dirY * Math.cos(rotSpeed);
