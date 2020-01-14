@@ -1,18 +1,22 @@
-import { draw as drawRaycaster } from "./display/raycaster";
-import { PositionInfo } from "./world/positionInfo";
-import { TextureProvider } from "./display/textureProvider";
+import { WorldRenderer } from "./display/worldRenderer/worldRenderer";
+import { GameState } from "./gameState";
+import { TextureProvider } from "./display/worldRenderer/textureProvider";
 
 let canvas: HTMLCanvasElement;
 let ctx: CanvasRenderingContext2D;
 
-let positionInfo: PositionInfo = {
-  posX: 4,
-  posY: 4,
-  dirX: -1,
-  dirY: 0,
-  planeX: 0,
-  planeY: 0.66
+const gameState: GameState = {
+  position: {
+    posX: 4,
+    posY: 4,
+    dirX: -1,
+    dirY: 0,
+    planeX: 0,
+    planeY: 0.66
+  }
 }
+
+let worldRenderer: WorldRenderer
 
 const setup = () => {
   canvas = document.getElementById("canvas") as HTMLCanvasElement;
@@ -22,7 +26,11 @@ const setup = () => {
 
   ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
 
+  const textureProvider = new TextureProvider();
+  worldRenderer = new WorldRenderer(textureProvider, canvas, ctx);
+
   setInterval(() => {
+    const positionInfo = gameState.position
     const rotSpeed = 0.01
     const oldDirX = positionInfo.dirX;
     positionInfo.dirX = positionInfo.dirX * Math.cos(rotSpeed) - positionInfo.dirY * Math.sin(rotSpeed);
@@ -35,12 +43,10 @@ const setup = () => {
   requestAnimationFrame(draw);
 };
 
-const textureProvider = new TextureProvider();
-
-const draw = (now: number) => {
+const draw = () => {
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
-  drawRaycaster(textureProvider, canvas, ctx, positionInfo);
+  worldRenderer.render(gameState);
 
   requestAnimationFrame(draw);
 };
