@@ -2,6 +2,7 @@ import { Renderer } from "../renderer";
 import { GameState } from "../../gameState";
 import { TextureProvider, TEXTURE_HEIGHT, TEXTURE_WIDTH } from "./textureProvider";
 import { map } from "../../world/map";
+import { numberToInteger } from "../../numberToInteger";
 
 const setImageDataPixel = (imageData: ImageData, x: number, y: number, color: number) => {
   const red = (color >> 16) & 0xFF;
@@ -38,6 +39,24 @@ export class WorldRenderer implements Renderer<GameState> {
 
     this.drawFloors(imageData, gameState);
 
+    this.drawWalls(imageData, gameState);
+
+    ctx.putImageData(imageData, 0, 0);
+
+    ctx.font = "16px Arial";
+    ctx.fillStyle = "#FFFF00";
+    ctx.fillText("posX: " + posX.toFixed(2), 10, 16);
+    ctx.fillText("posY: " + posY.toFixed(2), 10, 32);
+  }
+
+  private drawWalls(imageData: ImageData, gameState: GameState) {
+    const { ctx, textureProvider } = this;
+    const { position } = gameState;
+
+    const { width, height } = ctx.canvas;
+
+    const { posX, posY, dirX, dirY, planeX, planeY } = position;
+    
     for (let x = 0; x < width; x++) {
       //calculate ray position and direction
       const cameraX = 2 * x / width - 1; //x-coordinate in camera space
@@ -45,8 +64,8 @@ export class WorldRenderer implements Renderer<GameState> {
       const rayDirY = dirY + planeY * cameraX;
 
       //which box of the map we're in
-      let mapX = Math.round(posX);
-      let mapY = Math.round(posY);
+      let mapX = numberToInteger(posX);
+      let mapY = numberToInteger(posY);
 
       //length of ray from one x or y-side to next x or y-side
       const deltaDistX = Math.sqrt(1 + (rayDirY * rayDirY) / (rayDirX * rayDirX));
@@ -104,7 +123,7 @@ export class WorldRenderer implements Renderer<GameState> {
       else perpWallDist = (mapY - posY + (1 - stepY) / 2) / rayDirY;
 
       //Calculate height of line to draw on screen
-      const lineHeight = Math.round(height / perpWallDist);
+      const lineHeight = numberToInteger(height / perpWallDist);
 
       //calculate lowest and highest pixel to fill in current stripe
       let drawStart = -lineHeight / 2 + height / 2;
@@ -125,7 +144,7 @@ export class WorldRenderer implements Renderer<GameState> {
       wallX -= Math.floor(wallX);
 
       //x coordinate on the texture
-      let texX = Math.round(wallX * TEXTURE_WIDTH);
+      let texX = numberToInteger(wallX * TEXTURE_WIDTH);
       if (side == 0 && rayDirX > 0) texX = TEXTURE_WIDTH - texX - 1;
       if (side == 1 && rayDirY < 0) texX = TEXTURE_WIDTH - texX - 1;
 
@@ -133,9 +152,9 @@ export class WorldRenderer implements Renderer<GameState> {
       const step = 1.0 * TEXTURE_HEIGHT / lineHeight;
       // Starting texture coordinate
       let texPos = (drawStart - height / 2 + lineHeight / 2) * step;
-      for (let y = Math.round(drawStart); y < Math.round(drawEnd); y++) {
+      for (let y = numberToInteger(drawStart); y < numberToInteger(drawEnd); y++) {
         // Cast the texture coordinate to integer, and mask with (texHeight - 1) in case of overflow
-        const texY = Math.round(texPos) & (TEXTURE_HEIGHT - 1);
+        const texY = numberToInteger(texPos) & (TEXTURE_HEIGHT - 1);
         texPos += step;
         let color = textureProvider.getColor(texNum, texX, texY);
         //make color darker for y-sides: R, G and B byte each divided through two with a "shift" and an "and"
@@ -144,8 +163,6 @@ export class WorldRenderer implements Renderer<GameState> {
         setImageDataPixel(imageData, x, y, color);
       }
     }
-
-    ctx.putImageData(imageData, 0, 0);
   }
 
   private drawFloors(imageData: ImageData, gameState: GameState) {
@@ -185,12 +202,12 @@ export class WorldRenderer implements Renderer<GameState> {
 
       for (let x = 0; x < width; ++x) {
         // the cell coord is simply got from the integer parts of floorX and floorY
-        const cellX = Math.round(floorX);
-        const cellY = Math.round(floorY);
+        const cellX = numberToInteger(floorX);
+        const cellY = numberToInteger(floorY);
 
         // get the texture coordinate from the fractional part
-        const tx = Math.round(TEXTURE_WIDTH * (floorX - cellX)) & (TEXTURE_WIDTH - 1);
-        const ty = Math.round(TEXTURE_HEIGHT * (floorY - cellY)) & (TEXTURE_HEIGHT - 1);
+        const tx = numberToInteger(TEXTURE_WIDTH * (floorX - cellX)) & (TEXTURE_WIDTH - 1);
+        const ty = numberToInteger(TEXTURE_HEIGHT * (floorY - cellY)) & (TEXTURE_HEIGHT - 1);
 
         floorX += floorStepX;
         floorY += floorStepY;

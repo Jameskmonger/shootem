@@ -1,6 +1,8 @@
 import { WorldRenderer } from "./display/worldRenderer/worldRenderer";
 import { GameState } from "./gameState";
 import { TextureProvider } from "./display/worldRenderer/textureProvider";
+import { KeyListener } from "./keyListener";
+import { MovementHandler } from "./world/movementHandler";
 
 let canvas: HTMLCanvasElement;
 let ctx: CanvasRenderingContext2D;
@@ -14,9 +16,10 @@ const gameState: GameState = {
     planeX: 0,
     planeY: 0.66
   }
-}
+};
 
-let worldRenderer: WorldRenderer
+let worldRenderer: WorldRenderer;
+let movementHandler: MovementHandler;
 
 const setup = () => {
   canvas = document.getElementById("canvas") as HTMLCanvasElement;
@@ -29,26 +32,27 @@ const setup = () => {
   const textureProvider = new TextureProvider();
   worldRenderer = new WorldRenderer(textureProvider, canvas, ctx);
 
-  setInterval(() => {
-    const positionInfo = gameState.position
-    const rotSpeed = 0.01
-    const oldDirX = positionInfo.dirX;
-    positionInfo.dirX = positionInfo.dirX * Math.cos(rotSpeed) - positionInfo.dirY * Math.sin(rotSpeed);
-    positionInfo.dirY = oldDirX * Math.sin(rotSpeed) + positionInfo.dirY * Math.cos(rotSpeed);
-    const oldPlaneX = positionInfo.planeX;
-    positionInfo.planeX = positionInfo.planeX * Math.cos(rotSpeed) - positionInfo.planeY * Math.sin(rotSpeed);
-    positionInfo.planeY = oldPlaneX * Math.sin(rotSpeed) + positionInfo.planeY * Math.cos(rotSpeed);
-  }, 50)
+  const keyListener = new KeyListener();
+  movementHandler = new MovementHandler(keyListener, gameState.position);
 
-  requestAnimationFrame(draw);
+  requestAnimationFrame(gameLoop);
 };
 
 const draw = () => {
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
   worldRenderer.render(gameState);
+};
 
-  requestAnimationFrame(draw);
+let lastGameLoopTime: number = Number.POSITIVE_INFINITY;
+const gameLoop = (now: number) => {
+  const delta = (now - lastGameLoopTime) / 1000;
+  lastGameLoopTime = now;
+  movementHandler.adjustMovement(delta);
+
+  draw();
+
+  requestAnimationFrame(gameLoop);
 };
 
 document.addEventListener('DOMContentLoaded', function () {
